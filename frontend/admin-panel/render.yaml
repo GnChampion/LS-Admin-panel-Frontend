@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: ls-admin-panel-frontend
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      # Admin backend (orchestrator) URL.
+      - key: VITE_ADMIN_BACKEND_URL
+        value: "https://ls-admin-panel-backend-1.onrender.com"
+      # Deployed module + delivery service URLs.
+      - key: VITE_MODULE_OPTICAL_URL
+        value: "https://ls-optical-module-auto.onrender.com"
+      - key: VITE_MODULE_PUBLISHING_URL
+        value: "https://ls-pull-push-backend.onrender.com"
+      # Prototype: disable the Firebase login wall (auth is auth-only anyway).
+      # Set to "true" later once the Firebase web client config is supplied.
+      - key: VITE_REQUIRE_AUTH
+        value: "false"
