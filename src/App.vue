@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { LayoutDashboard, Satellite, Radio, ScrollText, LogOut, ShieldAlert, ListChecks, FileBarChart } from 'lucide-vue-next'
+import { LayoutDashboard, Satellite, Radio, ScrollText, LogOut, ShieldAlert, ListChecks, FileBarChart, Layers, Map, Users, Activity } from 'lucide-vue-next'
 import { login, logout, getCurrentUser, resetPassword, requireAuth } from './services/firebase'
 import type { User } from 'firebase/auth'
 
@@ -18,9 +18,13 @@ const nav = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/modules', label: 'Modules', icon: Satellite },
   { to: '/analyses', label: 'Analyses', icon: FileBarChart },
-  { to: '/tasks', label: 'Tasks', icon: ListChecks },
+  { to: '/task-monitor', label: 'Task Monitor', icon: Activity },
+  { to: '/tasks', label: 'Tasks (Legacy)', icon: ListChecks },
   { to: '/providers', label: 'Providers', icon: Radio },
   { to: '/requests', label: 'Zone Requests', icon: ScrollText },
+  { to: '/zones', label: 'Zone Management', icon: Map },
+  { to: '/users', label: 'User Management', icon: Users },
+  { to: '/tiers', label: 'Tiers', icon: Layers },
   { to: '/runs', label: 'Runs', icon: ScrollText }
 ]
 

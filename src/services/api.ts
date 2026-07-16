@@ -183,21 +183,6 @@ export interface PushDeliveredBody {
   data?: Record<string, any>
 }
 
-export async function pushDelivered(body: PushDeliveredBody): Promise<{ status: string }> {
-  const res = await publishingApi.post('/api/v1/delivery/push', body)
-  return res.data
-}
-
-export async function listAnalyses(limit = 50): Promise<AnalysisRecord[]> {
-  const res = await adminApi.get('/api/v1/analyses', { params: { limit } })
-  return res.data?.data || []
-}
-
-export async function getAnalysis(id: string): Promise<AnalysisRecord> {
-  const res = await adminApi.get(`/api/v1/analyses/${id}`)
-  return res.data
-}
-
 // ---------------------------------------------------------------------------
 // Publishing backend (P1 delivery service): user zone requests + Autopilot.
 // ---------------------------------------------------------------------------
@@ -217,6 +202,21 @@ publishingApi.interceptors.request.use(async (config) => {
   }
   return config
 })
+
+export async function pushDelivered(body: PushDeliveredBody): Promise<{ status: string }> {
+  const res = await publishingApi.post('/api/v1/delivery/push', body)
+  return res.data
+}
+
+export async function listAnalyses(limit = 50): Promise<AnalysisRecord[]> {
+  const res = await adminApi.get('/api/v1/analyses', { params: { limit } })
+  return res.data?.data || []
+}
+
+export async function getAnalysis(id: string): Promise<AnalysisRecord> {
+  const res = await adminApi.get(`/api/v1/analyses/${id}`)
+  return res.data
+}
 
 export interface ZoneRequest {
   request_id: string
@@ -251,7 +251,7 @@ export async function getZoneRequests(): Promise<ZoneRequest[]> {
 // delete removes the stored record.
 // ---------------------------------------------------------------------------
 
-export async function asList(r: any, key = 'data'): any[] {
+export function asList(r: any, key = 'data'): any[] {
   const body = r?.data ?? r
   const val = body?.[key]
   return Array.isArray(val) ? val : []
@@ -268,3 +268,41 @@ export async function deleteAnalysis(id: string) {
 }
 
 export default { healthCheck, runModule, getAutopilot, setAutopilot, getZoneRequests }
+
+// ---------------------------------------------------------------------------
+// Tier management (publishing backend)
+// ---------------------------------------------------------------------------
+
+export interface Tier {
+  tier_id: string
+  tier_name: string
+  description?: string
+  tier_level: 'free' | 'standard' | 'pro' | 'enterprise'
+  status: 'active' | 'inactive'
+  limits?: {
+    max_zones?: number
+    max_versions_per_zone?: number
+    allowed_modules?: string[]
+    max_resolution?: string
+    v2_access?: boolean
+    max_tasks_per_day?: number
+  }
+}
+
+export async function listTiers(): Promise<Tier[]> {
+  const res = await publishingApi.get('/api/v1/tiers')
+  return res.data?.data || []
+}
+
+export async function createTier(data: Omit<Tier, 'tier_id'> & { tier_id: string }): Promise<{ tier_id: string }> {
+  const res = await publishingApi.post('/api/v1/tiers', data)
+  return res.data
+}
+
+export async function updateTier(tierId: string, data: Partial<Tier>): Promise<void> {
+  await publishingApi.put(`/api/v1/tiers/${tierId}`, data)
+}
+
+export async function deleteTier(tierId: string): Promise<void> {
+  await publishingApi.delete(`/api/v1/tiers/${tierId}`)
+}

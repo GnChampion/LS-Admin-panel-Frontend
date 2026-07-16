@@ -12,13 +12,19 @@ const error = ref('')
 let timer: any = null
 
 async function refresh() {
-  const results = await Promise.all(
-    MODULES.map(async (m) => [m.id, await healthCheck(m)] as const)
-  )
-  const map: Record<string, HealthResult> = {}
-  for (const [id, r] of results) map[id] = r
-  health.value = map
-  loading.value = false
+  try {
+    const results = await Promise.all(
+      MODULES.map(async (m) => [m.id, await healthCheck(m)] as const)
+    )
+    const map: Record<string, HealthResult> = {}
+    for (const [id, r] of results) map[id] = r
+    health.value = map
+    error.value = ''
+  } catch (e: any) {
+    error.value = e?.message || 'Failed to fetch module health'
+  } finally {
+    loading.value = false
+  }
 }
 
 function statusOf(m: ModuleDef): 'online' | 'offline' {
