@@ -290,16 +290,16 @@ function getSortIcon(key: string) {
     <!-- Column Filters -->
     <div v-if="filterable" class="px-4 py-2 border-b border-slate-100 bg-slate-50 overflow-x-auto">
       <div class="flex gap-2 min-w-max">
-        <input
-          v-for="col in columns"
-          :key="col.key"
-          v-if="col.filterable && visibleColumns.has(col.key)"
-          v-model="columnFilters[col.key]"
-          type="text"
-          :placeholder="`Filter ${col.label}...`"
-          :style="{ width: col.width || '140px' }"
-          class="px-2 py-1.5 text-xs rounded border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
-        />
+        <template v-for="col in columns" :key="col.key">
+          <input
+            v-if="col.filterable && visibleColumns.has(col.key)"
+            v-model="columnFilters[col.key]"
+            type="text"
+            :placeholder="`Filter ${col.label}...`"
+            :style="{ width: col.width || '140px' }"
+            class="px-2 py-1.5 text-xs rounded border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+          />
+        </template>
       </div>
     </div>
 

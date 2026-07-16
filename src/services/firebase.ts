@@ -1,4 +1,5 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app'
+import { getAnalytics, type Analytics } from 'firebase/analytics'
 import { getFirestore, type Firestore } from 'firebase/firestore'
 import {
   getAuth,
@@ -26,7 +27,8 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 }
 
 // Initialize the app whenever web config is present — Firestore needs it too.
@@ -35,6 +37,10 @@ if (firebaseConfig.apiKey) {
   app = initializeApp(firebaseConfig)
 }
 export const db: Firestore | null = app ? getFirestore(app) : null
+
+// Analytics (optional — only initialized when a measurementId is provided).
+export const analytics: Analytics | null =
+  app && firebaseConfig.measurementId ? getAnalytics(app) : null
 
 let auth: Auth | null = null
 if (app && requireAuth) {
