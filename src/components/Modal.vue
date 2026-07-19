@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { X, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { ref, computed, watch, nextTick } from 'vue'
+import { X } from 'lucide-vue-next'
 
 interface ModalProps {
   modelValue: boolean
@@ -38,7 +38,6 @@ const isOpen = ref(false)
 const isClosing = ref(false)
 const focusableElements = ref<HTMLElement[]>([])
 let previousActiveElement: HTMLElement | null = null
-let focusIndex = 0
 
 const sizeClasses = {
   sm: 'max-w-md',
@@ -153,15 +152,7 @@ function trapFocus(e?: KeyboardEvent) {
   }
 }
 
-function handleConfirm() {
-  emit('confirm')
-  close()
-}
 
-function handleCancel() {
-  emit('cancel')
-  close()
-}
 </script>
 
 <template>
@@ -211,7 +202,7 @@ function handleCancel() {
         <!-- Footer -->
         <footer
           v-if="!hideFooter && $slots.footer"
-          :class="['px-6 py-4 border-t border-slate-200 bg-slate-50/50 sticky bottom-0', {
+          :class="['flex px-6 py-4 border-t border-slate-200 bg-slate-50/50 sticky bottom-0 gap-2', {
             'justify-start': footerAlign === 'left',
             'justify-center': footerAlign === 'center',
             'justify-end': footerAlign === 'right',
@@ -225,11 +216,6 @@ function handleCancel() {
   </Transition>
 </template>
 
-<script lang="ts">
-export default {
-  name: 'Modal',
-}
-</script>
 
 <style scoped>
 .modal-enter-active,

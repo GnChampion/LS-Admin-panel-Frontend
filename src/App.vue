@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { LayoutDashboard, Satellite, Radio, ScrollText, LogOut, ShieldAlert, ListChecks, FileBarChart, Layers, Map, Users, Activity } from 'lucide-vue-next'
+import { LayoutDashboard, Satellite, Radio, ScrollText, LogOut, ShieldAlert, FileBarChart, Layers, Map, Users, Activity, History } from 'lucide-vue-next'
 import { login, logout, getCurrentUser, resetPassword, requireAuth } from './services/firebase'
 import type { User } from 'firebase/auth'
 
@@ -19,19 +19,15 @@ const nav = [
   { to: '/modules', label: 'Modules', icon: Satellite },
   { to: '/analyses', label: 'Analyses', icon: FileBarChart },
   { to: '/task-monitor', label: 'Task Monitor', icon: Activity },
-  { to: '/tasks', label: 'Tasks (Legacy)', icon: ListChecks },
   { to: '/providers', label: 'Providers', icon: Radio },
   { to: '/requests', label: 'Zone Requests', icon: ScrollText },
   { to: '/zones', label: 'Zone Management', icon: Map },
   { to: '/users', label: 'User Management', icon: Users },
   { to: '/tiers', label: 'Tiers', icon: Layers },
-  { to: '/runs', label: 'Runs', icon: ScrollText }
+  { to: '/runs', label: 'Runs', icon: History },
 ]
 
 const pageTitle = computed(() => (route.meta.title as string) || 'Admin')
-const backendUrl = import.meta.env.VITE_BACKEND_URL || 'n/a'
-
-watch([user, route], () => nextTick(() => {}))
 
 onMounted(async () => {
   if (requireAuth) {
@@ -112,9 +108,10 @@ async function handleReset() {
         <div class="w-9 h-9 rounded-lg bg-brand-500 flex items-center justify-center text-white font-bold">LS</div>
         <span class="font-bold text-slate-800">Land Scanner</span>
       </div>
-      <nav class="flex-1 p-3 space-y-1">
+      <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
         <router-link v-for="n in nav" :key="n.to" :to="n.to"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          active-class="bg-brand-50 text-brand-700">
           <component :is="n.icon" class="w-4 h-4" />
           <span>{{ n.label }}</span>
         </router-link>
@@ -134,7 +131,7 @@ async function handleReset() {
     <main class="flex-1 ml-60">
       <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-10">
         <h2 class="text-xl font-semibold text-slate-800">{{ pageTitle }}</h2>
-        <span class="text-xs text-slate-400">8 module services</span>
+        <span class="text-xs text-slate-400">Land Scanner Admin</span>
       </header>
       <div class="p-6">
         <router-view />

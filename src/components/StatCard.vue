@@ -3,7 +3,8 @@ import { computed } from 'vue'
 import { 
   MapPin, CheckCircle, Image, Maximize, Satellite, 
   Users, Clock, DollarSign, TrendingUp, TrendingDown, 
-  Activity, BarChart, Shield, Database, Cloud, Globe 
+  Activity, BarChart, Shield, Database, Cloud, Globe,
+  RotateCcw, XCircle, AlertTriangle, Zap, CheckCircle2,
 } from 'lucide-vue-next'
 
 interface Props {
@@ -22,6 +23,7 @@ const icons = {
   MapPin, CheckCircle, Image, Maximize, Satellite,
   Users, Clock, DollarSign, TrendingUp, TrendingDown,
   Activity, BarChart, Shield, Database, Cloud, Globe,
+  RotateCcw, XCircle, AlertTriangle, Zap, CheckCircle2,
 }
 
 const iconColorClasses = {
@@ -50,7 +52,7 @@ const iconColorClasses = {
         </p>
       </div>
       <div class="p-3 rounded-xl" :class="iconColorClasses[color]">
-        <component :is="icons[icon]" class="w-6 h-6 text-white" />
+        <component :is="(icons as any)[icon]" class="w-6 h-6" />
       </div>
     </div>
   </div>

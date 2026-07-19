@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Search, Filter, Download, Columns } from 'lucide-vue-next'
+import { ref, computed, watch } from 'vue'
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Search, Download, Columns } from 'lucide-vue-next'
 
 interface Column<T> {
   key: string
@@ -64,7 +64,7 @@ const sortOrder = ref<'asc' | 'desc'>(props.defaultSort?.order || 'asc')
 const selectedRows = ref<Set<any>>(new Set())
 const visibleColumns = ref<Set<string>>(new Set(props.columns.map(c => c.key)))
 const columnFilters = ref<Record<string, string>>({})
-const showColumnPicker = ref(false)
+const columnPickerOpen = ref(false)
 const currentPageSize = ref(props.pageSize)
 
 watch(() => props.pageSize, (v) => {
@@ -252,7 +252,7 @@ function getSortIcon(key: string) {
         <!-- Column Picker -->
         <div v-if="showColumnPicker" class="relative">
           <button
-            @click="showColumnPicker = !showColumnPicker"
+            @click="columnPickerOpen = !columnPickerOpen"
             class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-300 text-sm text-slate-600 hover:bg-slate-50"
           >
             <Columns class="w-4 h-4" />
@@ -260,7 +260,7 @@ function getSortIcon(key: string) {
           </button>
           
           <Transition name="fade">
-            <div v-if="showColumnPicker" class="absolute right-0 top-full mt-1 z-50 bg-white rounded-lg border border-slate-200 shadow-lg py-1 min-w-[180px]">
+            <div v-if="columnPickerOpen" class="absolute right-0 top-full mt-1 z-50 bg-white rounded-lg border border-slate-200 shadow-lg py-1 min-w-[180px]">
               <div class="px-3 py-2 border-b border-slate-100 text-xs font-medium text-slate-500 uppercase">Columns</div>
               <label v-for="col in columns" :key="col.key" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 cursor-pointer">
                 <input

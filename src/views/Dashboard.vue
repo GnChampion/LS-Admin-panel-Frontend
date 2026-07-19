@@ -62,7 +62,7 @@ onUnmounted(() => timer && clearInterval(timer))
     </div>
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
       <div class="text-2xl font-bold text-slate-800">{{ AUTOMATION_MODULES.length }}</div>
-      <div class="text-xs text-slate-400 mt-1">/run modules</div>
+      <div class="text-xs text-slate-400 mt-1">Automation modules</div>
     </div>
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
       <div class="text-2xl font-bold text-slate-800">1</div>

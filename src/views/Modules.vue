@@ -20,6 +20,7 @@ const selectedId = ref<string>(AUTOMATION_MODULES[0]?.id || 'optical')
 const selected = computed<ModuleDef | undefined>(() => getModule(selectedId.value))
 
 const health = reactive<Record<string, HealthResult>>({})
+const imagekitStatus = reactive<Record<string, boolean>>({})
 const lat = ref('13.0827')
 const lon = ref('80.2707')
 const time = ref('')
@@ -98,7 +99,12 @@ function selectModule(id: string) {
 async function refreshHealth(id: string) {
   const m = getModule(id)
   if (!m) return
-  health[id] = await healthCheck(m)
+  const result = await healthCheck(m)
+  health[id] = result
+  // Check for ImageKit status in health response
+  if (result.ok && result.data?.imagekit) {
+    imagekitStatus[id] = result.data.imagekit.configured === true
+  }
 }
 
 const sampleZones = [
@@ -303,6 +309,16 @@ watch(() => route.query.module, (q) => {
             <XCircle class="w-4 h-4" /> offline (start the service)
           </span>
           <span class="text-[11px] text-slate-400 ml-2">{{ selected.baseUrl }}</span>
+          
+          <!-- ImageKit Status -->
+          <div v-if="selected.id === 'optical'" class="mt-2 inline-flex items-center gap-1.5">
+            <span v-if="imagekitStatus[selected.id]" class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+              ✓ ImageKit configured
+            </span>
+            <span v-else-if="health[selected.id]?.ok" class="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+              ⚠ ImageKit not configured (images won't upload)
+            </span>
+          </div>
         </div>
       </div>
 
@@ -381,6 +397,7 @@ watch(() => route.query.module, (q) => {
           <div>
             <label class="block text-xs text-slate-500 mb-1">Time (optional)</label>
             <input v-model="time" placeholder="YYYY-MM-DD" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+            <p class="text-[11px] text-amber-600 mt-1">⚠️ NASA GIBS: use dates 3+ days ago</p>
           </div>
         </div>
         <div class="mt-3">
@@ -420,7 +437,7 @@ watch(() => route.query.module, (q) => {
           </span>
         </div>
         <div class="text-xs text-slate-400 mb-2">
-          run_id {{ result.run_id.slice(0, 10) }} · {{ result.started_at }} → {{ result.finished_at }}
+          run_id {{ result.run_id?.slice(0, 10) || '—' }} · {{ result.started_at }} → {{ result.finished_at }}
           <span v-if="taskId" class="ml-2 text-brand-600">task_id {{ taskId.slice(0, 10) }} (stored)</span>
         </div>
         <pre class="text-xs bg-slate-900 text-slate-100 rounded-lg p-4 overflow-auto max-h-96">{{ outputJson }}</pre>

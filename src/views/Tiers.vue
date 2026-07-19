@@ -10,12 +10,13 @@ const editingId = ref<string | null>(null)
 
 const MODULES = ['optical', 'weather', 'elevation', 'radar', 'land-cover', 'hydrology', 'spectral']
 
-const blank = (): Omit<Tier, 'tier_id'> & { tier_id: string } => ({
+const blank = (): Tier => ({
   tier_id: '',
   tier_name: '',
   description: '',
   tier_level: 'free',
   status: 'active',
+  stripe_price_id: null,
   limits: {
     max_zones: 5,
     max_versions_per_zone: 1,
@@ -26,7 +27,7 @@ const blank = (): Omit<Tier, 'tier_id'> & { tier_id: string } => ({
   },
 })
 
-const form = ref(blank())
+const form = ref<Tier>(blank())
 
 async function load() {
   loading.value = true
@@ -49,7 +50,16 @@ function openEdit(t: Tier) {
     description: t.description || '',
     tier_level: t.tier_level,
     status: t.status,
-    limits: { ...{ max_zones: 5, max_versions_per_zone: 1, allowed_modules: ['optical'], max_resolution: 'high', v2_access: false, max_tasks_per_day: 10 }, ...(t.limits || {}) },
+    stripe_price_id: t.stripe_price_id || null,
+    limits: {
+      max_zones: 5,
+      max_versions_per_zone: 1,
+      allowed_modules: ['optical'],
+      max_resolution: 'high',
+      v2_access: false,
+      max_tasks_per_day: 10,
+      ...(t.limits || {}),
+    },
   }
   editingId.value = t.tier_id
   showForm.value = true
@@ -63,6 +73,7 @@ async function save() {
       await updateTier(editingId.value, form.value)
     } else {
       if (!form.value.tier_id) { error.value = 'Tier ID is required'; loading.value = false; return }
+      if (!form.value.tier_name) { error.value = 'Tier Name is required'; loading.value = false; return }
       await createTier(form.value)
     }
     showForm.value = false
@@ -107,7 +118,6 @@ onMounted(load)
 
     <p v-if="error" class="mb-4 text-sm text-red-600 bg-red-50 px-4 py-2 rounded-lg">{{ error }}</p>
 
-    <!-- Tiers table -->
     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
       <div v-if="loading && !tiers.length" class="p-8 text-center text-slate-400 text-sm">Loading…</div>
       <div v-else-if="!tiers.length" class="p-8 text-center text-slate-400 text-sm">No tiers yet. Create one to get started.</div>
@@ -127,6 +137,7 @@ onMounted(load)
             <td class="px-4 py-3">
               <div class="font-medium text-slate-800">{{ t.tier_name }}</div>
               <div class="text-xs text-slate-400 font-mono">{{ t.tier_id }}</div>
+              <div v-if="t.stripe_price_id" class="text-xs text-slate-400">Stripe: {{ t.stripe_price_id }}</div>
             </td>
             <td class="px-4 py-3">
               <span class="px-2 py-0.5 rounded-full text-xs font-semibold"
@@ -216,6 +227,12 @@ onMounted(load)
             <label class="block text-xs font-medium text-slate-600 mb-1">Description</label>
             <input v-model="form.description" placeholder="Optional description"
               class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Stripe Price ID (optional)</label>
+            <input v-model="form.stripe_price_id" placeholder="price_xxx"
+              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg font-mono" />
           </div>
 
           <div class="border-t border-slate-100 pt-4">

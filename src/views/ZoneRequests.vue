@@ -43,6 +43,9 @@ const pendingCount = computed(() => requests.value.filter((r) => r.status === 'p
 const approvedCount = computed(() => requests.value.filter((r) => r.status === 'approved').length)
 
 function fmtCoord(r: ZoneRequest): string {
+  // New spec: v1 point
+  if (r.v1) return `${r.v1.lat.toFixed(4)}, ${r.v1.lon.toFixed(4)}`
+  // Legacy spec: coordinates object
   const c = r.coordinates
   if (!c) return '—'
   return `${c.latitude?.toFixed(4)}, ${c.longitude?.toFixed(4)}`
@@ -125,6 +128,7 @@ onUnmounted(() => timer && clearInterval(timer))
         <tr>
           <th class="text-left font-medium px-4 py-3">User</th>
           <th class="text-left font-medium px-4 py-3">Coordinates</th>
+          <th class="text-left font-medium px-4 py-3">AOI</th>
           <th class="text-left font-medium px-4 py-3">Quality</th>
           <th class="text-left font-medium px-4 py-3">Status</th>
           <th class="text-left font-medium px-4 py-3">Zone</th>
@@ -135,6 +139,11 @@ onUnmounted(() => timer && clearInterval(timer))
         <tr v-for="r in requests" :key="r.request_id" class="hover:bg-slate-50">
           <td class="px-4 py-3 text-slate-700 font-mono text-xs">{{ r.user_id }}</td>
           <td class="px-4 py-3 text-slate-600 text-xs">{{ fmtCoord(r) }}</td>
+          <td class="px-4 py-3 text-xs">
+            <span v-if="r.v1" class="mr-1 px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded">v1</span>
+            <span v-if="r.v2" class="px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded">v2</span>
+            <span v-if="!r.v1 && !r.v2" class="text-slate-400">legacy</span>
+          </td>
           <td class="px-4 py-3 text-slate-600">{{ r.quality || '—' }}</td>
           <td class="px-4 py-3">
             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium"

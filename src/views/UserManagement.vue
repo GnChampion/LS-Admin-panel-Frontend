@@ -1,16 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { publishingApi, listTiers, type Tier } from '../services/api'
-
-interface UserRow {
-  user_id: string
-  email?: string
-  display_name?: string
-  tier_id?: string
-  subscription_status?: string
-  created_at?: number
-  disabled?: boolean
-}
+import { listUsers, listTiers, adminAssignTier, type UserRow, type Tier } from '../services/api'
 
 const users = ref<UserRow[]>([])
 const tiers = ref<Tier[]>([])
@@ -23,11 +13,8 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const [uRes, tList] = await Promise.all([
-      publishingApi.get('/api/v1/users'),
-      listTiers(),
-    ])
-    users.value = uRes.data?.data || []
+    const [uList, tList] = await Promise.all([listUsers(), listTiers()])
+    users.value = uList
     tiers.value = tList
   } catch (e: any) {
     error.value = e?.response?.data?.detail || e?.message || 'Failed to load'
@@ -40,7 +27,7 @@ async function assignTier(userId: string) {
   if (!assignTierId.value) return
   loading.value = true
   try {
-    await publishingApi.post(`/api/v1/admin/users/${userId}/tier`, { tier_id: assignTierId.value })
+    await adminAssignTier(userId, assignTierId.value)
     assigningId.value = null
     await load()
   } catch (e: any) {

@@ -71,23 +71,35 @@ async function remove(id: string) {
   }
 }
 
-// Push the generated, tier-limited extract to pullpush -> Firebase P2 (user DB).
+// Push the generated, tier-limited extract to publishing -> Firebase P2 (user DB).
 async function pushToUser(a: any) {
   pushing.value = a.id
   pushMsg.value = ''
   try {
+    // Fetch full detail to get module results (list endpoint omits them)
+    const full = await getAnalysis(a.id)
+    const result = full.results?.[0]
+    const delivery1 = result ? {
+      output_type: 'image',
+      resolution: 'high',
+      aoi_version: full.version || 'v1',
+      image_urls: result.image_urls || full.storage_refs?.image_urls || [],
+      data: result.output || full.data || {},
+      provider: result.provider || '',
+      captured_at: result.finished_at || full.created_at || '',
+      coverage_pct: 100,
+    } : null
     const res = await pushDelivered({
-      zone_id: a.zone_id || a.id,
-      version: a.version || 'v1',
-      tier: a.tier || 'free',
-      user_id: a.user_id || null,
-      analysis_id: a.id,
-      status: a.status,
-      modules: a.modules,
-      image_urls: a.storage_refs?.image_urls || [],
-      data: a.data || {}
+      zone_id: full.zone_id || full.id,
+      module: result?.module || (Array.isArray(full.modules) ? full.modules[0] : 'optical') || 'optical',
+      task_id: full.task_id || null,
+      user_id: full.user_id || null,
+      quality_score: result?.quality_score ?? null,
+      attempt_number: 1,
+      delivery_1: delivery1,
+      delivery_2: null,
     })
-    pushMsg.value = res.status === 'success' ? `Pushed ${a.zone_id || a.id} (${a.version || 'v1'})` : 'Push returned no success'
+    pushMsg.value = res.status === 'success' ? `Pushed ${full.zone_id || full.id}` : 'Push returned no success'
   } catch (e: any) {
     pushMsg.value = e?.response?.data?.detail || e?.message || 'Push failed'
   } finally {

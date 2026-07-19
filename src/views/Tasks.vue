@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { listAnalyses, getAnalysis, rerunAnalysis, deleteAnalysis } from '../services/api'
+import { listAnalyses, getAnalysis, rerunAnalysis } from '../services/api'
 import { formatDate, badgeClass } from '../utils'
 import DataTable from '../components/DataTable.vue'
 import Modal from '../components/Modal.vue'
-import ActionMenu from '../components/ActionMenu.vue'
 import StatCard from '../components/StatCard.vue'
-import {
-  Eye, RotateCcw, Trash2, RefreshCw, Plus,
-} from 'lucide-vue-next'
+import { RefreshCw, Plus } from 'lucide-vue-next'
 
 const loading = ref(true)
 const error = ref('')
@@ -64,11 +61,6 @@ async function openDetail(task: any) {
   }
 }
 
-function closeModal() {
-  showModal.value = false
-  selectedTask.value = null
-}
-
 function openCreateModal() {
   newTaskForm.value = {
     zone_id: `zone_${Date.now().toString(36)}`,
@@ -98,29 +90,7 @@ async function createTask() {
   }
 }
 
-async function retryTask(task: any) {
-  try {
-    await rerunAnalysis({
-      zone_id: task.zone_id,
-      lat: task.lat != null ? Number(task.lat) : undefined,
-      lon: task.lon != null ? Number(task.lon) : undefined,
-      modules: Array.isArray(task.modules) ? task.modules : ['optical'],
-    })
-    await load()
-  } catch (e: any) {
-    alert(e?.response?.data?.detail || e?.message || 'Failed to retry')
-  }
-}
 
-async function deleteTask(task: any) {
-  if (!confirm('Delete this task and its results?')) return
-  try {
-    await deleteAnalysis(task.id)
-    await load()
-  } catch (e: any) {
-    alert(e?.response?.data?.detail || e?.message || 'Failed to delete')
-  }
-}
 </script>
 
 <template>
@@ -160,16 +130,9 @@ async function deleteTask(task: any) {
       :sortable="true"
       :show-column-picker="true"
       :show-export="true"
-      default-sort="{ key: 'created_at', order: 'desc' }"
-    >
-      <template #actions="{ row }">
-        <ActionMenu :items="[
-          { label: 'View Details', icon: Eye, action: 'view' },
-          { label: 'Retry', icon: RotateCcw, action: 'retry', variant: 'primary' },
-          { label: 'Delete', icon: Trash2, action: 'delete', variant: 'danger' },
-        ]" @view="openDetail(row)" @retry="retryTask(row)" @delete="deleteTask(row)" />
-      </template>
-    </DataTable>
+      :default-sort="{ key: 'created_at', order: 'desc' }"
+      @row-click="openDetail"
+    />
 
     <Modal v-model="showModal" :title="'Task #' + (selectedTask?.id?.slice(0, 8) || '')" size="lg">
       <div v-if="selectedTask" class="space-y-6">
@@ -190,6 +153,21 @@ async function deleteTask(task: any) {
                 <strong class="text-slate-700">{{ r.module }}</strong>
                 <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium" :class="badgeClass(r.status)">{{ r.status }}</span>
                 <span v-if="r.provider" class="text-xs text-slate-400">· {{ r.provider }}</span>
+                <span v-if="r.quality_score != null" class="text-xs font-semibold" :class="r.quality_score >= 0.7 ? 'text-emerald-600' : r.quality_score >= 0.4 ? 'text-amber-600' : 'text-red-600'">Q: {{ (r.quality_score * 100).toFixed(0) }}%</span>
+              </div>
+              <!-- Compromiser info -->
+              <div v-if="r.compromise_type && r.compromise_type !== 'exact'" class="mb-2 rounded-md bg-amber-50 border border-amber-200 p-2 text-xs">
+                <div class="font-semibold text-amber-800 mb-1">⚠️ Compromised — {{ r.compromise_type }}</div>
+                <div v-if="r.unavailable_reason" class="text-amber-700">{{ r.unavailable_reason }}</div>
+              </div>
+              <div v-else-if="r.compromise_type === 'exact'" class="mb-2 text-xs text-emerald-600 font-medium">✅ Exact match delivered</div>
+              <!-- Image URLs -->
+              <div v-if="r.image_urls?.length" class="mb-2">
+                <div class="text-xs text-slate-400 mb-1">Images ({{ r.image_urls.length }})</div>
+                <div class="flex flex-wrap gap-1">
+                  <a v-for="(url, i) in r.image_urls" :key="i" :href="url" target="_blank"
+                     class="text-xs text-blue-600 underline truncate max-w-xs">Image {{ i + 1 }}</a>
+                </div>
               </div>
               <pre class="text-xs bg-slate-900 text-slate-100 rounded-lg p-3 overflow-auto max-h-72">{{ JSON.stringify(r.output, null, 2) }}</pre>
             </div>
